@@ -1,6 +1,6 @@
 {
     "Olifantsoor (Alocasia zebrina)": {
-        "last_fertilized": "2026-09-01",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 14,
         "winter_interval": null,
         "last_watered": "2026-10-18",
@@ -8,7 +8,7 @@
         "water_amount": "Royaal (zorg dat de kluit niet uitdroogt, maar geen natte voeten)"
     },
     "Lipstick plant (Aeschynanthus radicans)": {
-        "last_fertilized": "2026-09-15",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
         "last_watered": "2026-10-18",
@@ -16,7 +16,7 @@
         "water_amount": "Matig (aarde licht vochtig houden)"
     },
     "Orchidee (Phalaenopsis)": {
-        "last_fertilized": "2026-10-01",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 14,
         "winter_interval": 28,
         "last_watered": "2026-10-15",
@@ -24,7 +24,7 @@
         "water_amount": "Dompelen (ca. 10 minuten in een bakje water zetten en goed laten uitlekken)"
     },
     "Gatenplant (Monstera deliciosa)": {
-        "last_fertilized": "2026-09-20",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": null,
         "last_watered": "2026-10-15",
@@ -32,7 +32,7 @@
         "water_amount": "Matig (laat de bovenste laag aarde iets opdrogen tussen gietbeurten)"
     },
     "Flamingoplant (Anthurium andraeanum)": {
-        "last_fertilized": "2026-09-10",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 35,
         "winter_interval": 70,
         "last_watered": "2026-10-18",
@@ -40,19 +40,11 @@
         "water_amount": "Matig (geef regelmatig kleine beetjes lauw water)"
     },
     "Graslelie (Chlorophytum comosum)": {
-        "last_fertilized": "2026-09-25",
+        "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
         "last_watered": "2026-10-18",
         "water_interval": 7,
         "water_amount": "Matig tot ruim (sterke plant, maar houdt van regelmaat)"
-    },
-    "vrouwentong": {
-        "last_fertilized": "2026-10-24",
-        "summer_interval": 15,
-        "winter_interval": null,
-        "last_watered": "2026-10-24",
-        "water_interval": 7,
-        "water_amount": "Twee keer een kopje water geven."
     }
 }
