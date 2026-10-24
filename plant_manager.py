@@ -11,15 +11,13 @@ import requests
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'plants.json')
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llava"
+OLLAMA_MODEL = "llava" # Wordt gebruikt voor zowel beeldherkenning als tekst/kennis
 
+# Enkele basisprofielen voor snelle offline herkenning (optioneel, fungeert als cache)
 PLANT_PROFILES = {
-    'alocasia': {'summer_interval': 14, 'winter_interval': None, 'water_interval': 7, 'water_amount': 'Royaal (kluit niet laten uitdrogen, geen natte voeten)'},
+    'alocasia': {'summer_interval': 14, 'winter_interval': None, 'water_interval': 7, 'water_amount': 'Royaal (kluit niet laten uitdrogen)'},
     'monstera': {'summer_interval': 21, 'winter_interval': None, 'water_interval': 10, 'water_amount': 'Matig (bovenste laag aarde iets laten opdrogen)'},
-    'orchidee': {'summer_interval': 14, 'winter_interval': 28, 'water_interval': 10, 'water_amount': 'Dompelen (ca. 10 minuten en goed laten uitlekken)'},
-    'vetplant': {'summer_interval': None, 'winter_interval': None, 'water_interval': 21, 'water_amount': 'Weinig (laat aarde volledig uitdrogen)'},
-    'cactus': {'summer_interval': None, 'winter_interval': None, 'water_interval': 28, 'water_amount': 'Zeer weinig (bijna droog laten staan)'},
-    'standaard': {'summer_interval': 30, 'winter_interval': None, 'water_interval': 7, 'water_amount': 'Matig (standaard waterbehoefte)'}
+    'orchidee': {'summer_interval': 14, 'winter_interval': 28, 'water_interval': 10, 'water_amount': 'Dompelen (ca. 10 minuten en goed laten uitlekken)'}
 }
 
 def load_data():
@@ -66,12 +64,59 @@ class PlantManager:
         for plant in sorted(self.data.keys()):
             self.listbox.insert(tk.END, plant)
 
+    def fetch_profile_via_ai(self, plant_name):
+        """Raadpleegt de LLM om de water- en mestbehoefte op te zoeken en als JSON te retourneren."""
+        prompt = (
+            f"Je bent een botanisch expert. Geef de verzorgingsbehoefte voor de kamerplant '{plant_name}'. "
+            "Antwoord UITSLUITEND met geldige JSON. Geef geen introductie, geen markdown (zoals ```json), en geen extra tekst. "
+            "Gebruik exact deze sleutels:\n"
+            "- \"summer_interval\": aantal dagen tussen voeding in zomer (integer) of null als geen voeding nodig is.\n"
+            "- \"winter_interval\": aantal dagen tussen voeding in winter (integer) of null.\n"
+            "- \"water_interval\": aantal dagen tussen water geven (integer).\n"
+            "- \"water_amount\": Korte Nederlandse instructie over de hoeveelheid water (string)."
+        )
+        
+        payload = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}
+        
+        try:
+            response = requests.post(OLLAMA_API_URL, json=payload, timeout=20)
+            response.raise_for_status()
+            ai_result = response.json().get("response", "").strip()
+            
+            # Verwijder eventuele markdown formatting als het model dit toch toevoegt
+            if ai_result.startswith("```json"):
+                ai_result = ai_result.replace("```json", "").replace("```", "").strip()
+                
+            profile = json.loads(ai_result)
+            
+            # Valideer of de benodigde keys aanwezig zijn
+            required_keys = ['summer_interval', 'winter_interval', 'water_interval', 'water_amount']
+            if all(key in profile for key in required_keys):
+                return profile
+        except Exception as e:
+            print(f"AI profiel generatie mislukt: {e}")
+        
+        return None
+
     def get_profile(self, name):
         name_lower = name.lower()
+        # 1. Zoek in hardcoded basisprofielen
         for key, profile in PLANT_PROFILES.items():
             if key in name_lower:
-                return profile
-        return PLANT_PROFILES['standaard']
+                return profile, f"lokaal profiel '{key}'"
+        
+        # 2. Vraag AI om het op te zoeken op basis van zijn getrainde kennis
+        self.root.config(cursor="watch")
+        self.root.update()
+        ai_profile = self.fetch_profile_via_ai(name)
+        self.root.config(cursor="")
+        
+        if ai_profile:
+            return ai_profile, "AI gegenereerd (internetkennis)"
+            
+        # 3. Fallback als de AI faalt of niet bereikbaar is
+        standaard = {'summer_interval': 30, 'winter_interval': None, 'water_interval': 7, 'water_amount': 'Matig (standaard waterbehoefte)'}
+        return standaard, "standaard fallback (AI onbereikbaar)"
 
     def identify_with_ai(self):
         file_path = filedialog.askopenfilename(title="Kies een foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png")])
@@ -106,19 +151,26 @@ class PlantManager:
     def add_plant(self):
         name = self.entry_name.get().strip()
         if not name: return
-        if name in self.data: return
+        if name in self.data: 
+            messagebox.showwarning("Dubbel", "Deze plant bestaat al.")
+            return
         
-        profile = self.get_profile(name)
+        profile, bron = self.get_profile(name)
         today = datetime.now().strftime("%Y-%m-%d")
         
         self.data[name] = {
-            "last_fertilized": today, "summer_interval": profile['summer_interval'], "winter_interval": profile['winter_interval'],
-            "last_watered": today, "water_interval": profile['water_interval'], "water_amount": profile['water_amount']
+            "last_fertilized": today, 
+            "summer_interval": profile['summer_interval'], 
+            "winter_interval": profile['winter_interval'],
+            "last_watered": today, 
+            "water_interval": profile['water_interval'], 
+            "water_amount": profile['water_amount']
         }
         
         save_data(self.data)
         self.refresh_list()
         self.entry_name.delete(0, tk.END)
+        messagebox.showinfo("Succes", f"'{name}' is toegevoegd.\nSchema gebaseerd op: {bron}.")
 
     def remove_plant(self):
         selected = self.listbox.curselection()
