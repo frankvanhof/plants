@@ -8,16 +8,16 @@ De applicatie draait volledig offline en maakt gebruik van een slimme, dubbele i
 
 ```mermaid
 graph TD
-    A[Gebruiker] -->|1. Kiest foto| B(plant_manager.py)
-    B -->|Base64 Image + Prompt| C[(Ollama: llava)]
-    C -->|Plantnaam (bijv. Monstera)| B
-    A -->|2. Klikt 'Voeg Toe'| B
-    B -->|Prompt: Zoek schema voor 'Monstera'| C
-    C -->|JSON schema (Water & Voeding)| B
+    A[Gebruiker] -->|1. Kiest foto| B[plant_manager.py]
+    B -->|Base64 Image en Prompt| C[(Ollama llava)]
+    C -->|Geeft Plantnaam terug| B
+    A -->|2. Klikt Voeg Toe| B
+    B -->|Vraagt om schema| C
+    C -->|JSON schema terug| B
     B -->|Opslaan| D[(plants.json)]
-    E[Cronjob 09:00] --> F(check_plants.py)
+    E[Cronjob 09:00] --> F[check_plants.py]
     F -->|Leest data| D
-    F -->|Indien actie nodig| G[notify-send Desktop Melding]
+    F -->|Indien actie nodig| G[Stuur Desktop Melding]
 Onderdelen in deze map:
 plants.json: De lokale database waarin de statussen, water- en voedingsintervallen van al je planten zijn opgeslagen.
 
