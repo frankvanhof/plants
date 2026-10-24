@@ -144,29 +144,66 @@ class PlantManager:
         prompt = (
             f"Je bent een botanisch expert. Geef de verzorgingsbehoefte voor de kamerplant '{plant_name}'. "
             "Antwoord UITSLUITEND met geldige JSON. Geef geen introductie, geen markdown, en geen extra tekst. "
-            "Gebruik exact deze sleutels:\n"
-            "- \"summer_interval\": aantal dagen tussen voeding in zomer (integer) of null.\n"
-            "- \"winter_interval\": aantal dagen tussen voeding in winter (integer) of null.\n"
-            "- \"water_interval\": aantal dagen tussen water geven (integer).\n"
-            "- \"water_amount\": Korte Nederlandse instructie over de hoeveelheid water (string)."
+            "Regels:\n"
+            "- \"summer_interval\": aantal dagen tussen voeding in zomer (integer > 0). Mag null zijn, maar planten hebben in de zomer vaker voeding nodig dan in de winter!\n"
+            "- \"winter_interval\": aantal dagen tussen voeding in winter (integer > 0) of null.\n"
+            "- \"water_interval\": aantal dagen tussen water geven (integer > 0).\n"
+            "- \"water_amount\": Korte, logische Nederlandse zin over de hoeveelheid water (string).\n"
+            "Zorg dat summer_interval NOOIT null is als winter_interval wel een getal heeft."
         )
         
-        payload = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}
+        # Temperature op 0.1 voor feitelijke, niet-creatieve antwoorden
+        payload = {
+            "model": OLLAMA_MODEL, 
+            "prompt": prompt, 
+            "stream": False,
+            "options": {"temperature": 0.1}
+        }
         
         try:
             response = requests.post(OLLAMA_API_URL, json=payload, timeout=20)
             response.raise_for_status()
             ai_result = response.json().get("response", "").strip()
             
-            if ai_result.startswith("```json"):
-                ai_result = ai_result.replace("```json", "").replace("```", "").strip()
+            # Verwijder markdown JSON blokken
+            if ai_result.startswith("```"):
+                ai_result = ai_result.strip("`").replace("json", "", 1).strip()
                 
             profile = json.loads(ai_result)
             required_keys = ['summer_interval', 'winter_interval', 'water_interval', 'water_amount']
+            
             if all(key in profile for key in required_keys):
+                w_int = profile.get('water_interval')
+                s_int = profile.get('summer_interval')
+                wi_int = profile.get('winter_interval')
+                
+                # 1. Harde check: Water interval MOET een geldig getal zijn
+                if not isinstance(w_int, int) or w_int <= 0:
+                    return None
+                    
+                # 2. Auto-correctie: Heeft de AI zomer en winter omgedraaid?
+                if s_int is None and isinstance(wi_int, int):
+                    s_int = wi_int
+                    wi_int = None
+                    profile['summer_interval'] = s_int
+                    profile['winter_interval'] = wi_int
+                    
+                # 3. Harde check: Zomer/winter intervallen moeten integers of null zijn
+                if s_int is not None and (not isinstance(s_int, int) or s_int <= 0):
+                    return None
+                if wi_int is not None and (not isinstance(wi_int, int) or wi_int <= 0):
+                    return None
+                    
+                # 4. Fallback voor rare hallucinatie-zinnen
+                if not isinstance(profile['water_amount'], str) or len(profile['water_amount']) < 5:
+                    profile['water_amount'] = "Matig water geven."
+                    
                 return profile
+                
+        except json.JSONDecodeError:
+            print("AI retourneerde geen geldige JSON. Terugval naar standaardprofiel.")
         except Exception as e:
-            print(f"AI profiel generatie mislukt: {e}")
+            print(f"AI profiel generatie mislukt: {e}. Terugval naar standaardprofiel.")
         
         return None
 
