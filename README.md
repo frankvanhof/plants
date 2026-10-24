@@ -18,6 +18,7 @@ graph TD
     E[Cronjob 09:00] --> F[check_plants.py]
     F -->|Leest data| D
     F -->|Indien actie nodig| G[Stuur Desktop Melding]
+```
 Onderdelen in deze map:
 plants.json: De lokale database waarin de statussen, water- en voedingsintervallen van al je planten zijn opgeslagen.
 
