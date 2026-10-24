@@ -2,9 +2,9 @@
 
 Een lokaal, privacy-vriendelijk beheersysteem voor kamerplanten. Geschreven in Python en geoptimaliseerd voor Linux Mint (Cinnamon).
 
-## 🏗️ Systeem Architectuur (Tweetraps AI)
+## 🏗️ Systeem Architectuur 
 
-De applicatie draait volledig offline en maakt gebruik van een slimme, dubbele integratie met een lokaal LLM (Ollama).
+De applicatie draait volledig offline. Hieronder zie je hoe de GUI, de lokale AI (Ollama), de database en de achtergrondtaken (cron) met elkaar samenwerken.
 
 ```mermaid
 graph TD
@@ -14,7 +14,9 @@ graph TD
     A -->|2. Klikt Voeg Toe| B
     B -->|Vraagt om schema| C
     C -->|JSON schema terug| B
-    B -->|Opslaan| D[(plants.json)]
+    B -->|Voegt toe aan| D[(plants.json)]
+    A -->|3. Vinkt taken af in GUI| B
+    B -->|Reset datum in| D
     E[Cronjob 09:00] --> F[check_plants.py]
     F -->|Leest data| D
     F -->|Indien actie nodig| G[Stuur Desktop Melding]
@@ -23,9 +25,9 @@ graph TD
 ### Onderdelen in deze map:
 * **`plants.json`**: De lokale database waarin de statussen, water- en voedingsintervallen van al je planten zijn opgeslagen.
 * **`plant_manager.py`**: De grafische Tkinter-interface (1200x1400px) om je planten te beheren.
+  - *✅ Dynamische Takenlijst*: Een direct overzicht van planten die water of voeding nodig hebben. Ondersteunt multi-select (Ctrl/Shift) om in één klik meerdere taken af te vinken en de database te updaten.
+  - *🧠 Tweetraps AI*: Identificeert planten via foto's en genereert daarna direct het bijbehorende verzorgingsschema via de lokale LLM.
   - *🔒 Single Instance Lock*: Maakt gebruik van een fcntl lock-file (`.plant_manager.lock`) om te voorkomen dat de app meerdere keren tegelijk opent.
-  - *🧠 Tweetraps AI*: Identificeert planten via foto's en genereert direct het bijbehorende verzorgingsschema.
-  - *✅ Dynamische Takenlijst*: Een overzicht van openstaande taken (water/voeding) dat multi-select ondersteunt (met Ctrl of Shift) om meerdere planten in één keer af te vinken.
 * **`check_plants.py`**: Het achtergrondscript dat berekent of planten water of voeding nodig hebben en dit via native desktopnotificaties (`notify-send`) meldt.
 
 ---
