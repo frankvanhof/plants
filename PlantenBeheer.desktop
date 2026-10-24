@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Planten Beheer
+Comment=Beheer je kamerplanten (AI & Schema's)
+Exec=/home/frank/tools/plants/plant_manager.py
+Icon=weather-clear
+Terminal=false
+Categories=Utility;
