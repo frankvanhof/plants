@@ -17,13 +17,13 @@ De applicatie draait volledig offline en maakt gebruik van een slimme, dubbele i
 
 ```mermaid
 graph TD
-    A[Gebruiker] -->|1. Kiest foto<br>(Handmatig / AI)| B(plant_manager.py)
-    B -->|Base64 Image<br>+ Prompt| C[(Ollama: llava)]
-    C -->|Plantnaam<br>(bijv. Monstera)| B
-    A -->|2. Klikt<br>'Voeg Toe'| B
-    B -->|Prompt: Zoek schema,<br>licht & tips| C
-    C -->|JSON schema<br>(Water, Voeding,<br>Licht, Tips)| B
-    B -->|Opslaan<br>(incl. fotopad)| D[(plants.json)]
-    E[Cronjob 09:00<br>via run_check.sh] --> F(check_plants.py)
+    A[Gebruiker] -->|1. Kiest foto Handmatig/AI| B(plant_manager.py)
+    B -->|Base64 Image + Prompt| C[(Ollama: llava)]
+    C -->|Plantnaam bijv. Monstera| B
+    A -->|2. Klikt Voeg Toe| B
+    B -->|Prompt: schema, licht & tips| C
+    C -->|JSON schema data| B
+    B -->|Opslaan incl. fotopad| D[(plants.json)]
+    E[Cronjob 09:00 via run_check.sh] --> F(check_plants.py)
     F -->|Leest data| D
-    F -->|Actie nodig?| G[notify-send<br>Desktop Melding]
+    F -->|Actie nodig?| G[notify-send Desktop Melding]
