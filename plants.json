@@ -3,7 +3,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 14,
         "winter_interval": null,
-        "last_watered": "2026-10-18",
+        "last_watered": "2026-10-21",
         "water_interval": 7,
         "water_amount": "Royaal (zorg dat de kluit niet uitdroogt, maar geen natte voeten)"
     },
@@ -11,7 +11,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
-        "last_watered": "2026-10-18",
+        "last_watered": "2026-10-25",
         "water_interval": 7,
         "water_amount": "Matig (aarde licht vochtig houden)"
     },
@@ -19,7 +19,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 14,
         "winter_interval": 28,
-        "last_watered": "2026-10-15",
+        "last_watered": "2026-10-25",
         "water_interval": 10,
         "water_amount": "Dompelen (ca. 10 minuten in een bakje water zetten en goed laten uitlekken)"
     },
@@ -27,7 +27,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": null,
-        "last_watered": "2026-10-15",
+        "last_watered": "2026-10-21",
         "water_interval": 10,
         "water_amount": "Matig (laat de bovenste laag aarde iets opdrogen tussen gietbeurten)"
     },
@@ -35,7 +35,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 35,
         "winter_interval": 70,
-        "last_watered": "2026-10-18",
+        "last_watered": "2026-10-21",
         "water_interval": 7,
         "water_amount": "Matig (geef regelmatig kleine beetjes lauw water)"
     },
@@ -43,16 +43,8 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
-        "last_watered": "2026-10-18",
+        "last_watered": "2026-10-22",
         "water_interval": 7,
         "water_amount": "Matig tot ruim (sterke plant, maar houdt van regelmaat)"
-    },
-    "pannenkoekplant": {
-        "last_fertilized": "2026-10-24",
-        "summer_interval": 14,
-        "winter_interval": null,
-        "last_watered": "2026-10-24",
-        "water_interval": 7,
-        "water_amount": "Een pannenkoekplant nodigt water om te groeien. Geef het water in een kopje en laat het op de grond of in een pot. Het is belangrijk dat de plant niet te droog wordt."
     }
 }
