@@ -2,6 +2,8 @@
 
 Een lokaal, privacy-vriendelijk beheersysteem voor kamerplanten. Geschreven in Python (Tkinter) en geoptimaliseerd voor Linux Mint (Cinnamon).
 
+![Planten Beheer App Screenshot](screenshot.png)
+
 ## 🚀 Huidige Functionaliteiten
 
 - **Visuele Tabel & Sortering:** Overzichtelijke weergave van planten, volgende waterbeurt en voeding. Klik op de kolomkoppen om te sorteren (start standaard gesorteerd op water-datum).
