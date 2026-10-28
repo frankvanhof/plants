@@ -3,7 +3,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 14,
         "winter_interval": null,
-        "last_watered": "2026-10-21",
+        "last_watered": "2026-10-28",
         "water_interval": 7,
         "water_amount": "Royaal (zorg dat de kluit niet uitdroogt, maar geen natte voeten)"
     },
@@ -13,7 +13,8 @@
         "winter_interval": 42,
         "last_watered": "2026-10-25",
         "water_interval": 7,
-        "water_amount": "Matig (aarde licht vochtig houden)"
+        "water_amount": "Matig (aarde licht vochtig houden)",
+        "image_path": "/home/frank/tools/plants/images/lipstick.jpg"
     },
     "Orchidee (Phalaenopsis)": {
         "last_fertilized": "2026-10-24",
@@ -29,13 +30,14 @@
         "winter_interval": null,
         "last_watered": "2026-10-21",
         "water_interval": 10,
-        "water_amount": "Matig (laat de bovenste laag aarde iets opdrogen tussen gietbeurten)"
+        "water_amount": "Matig (laat de bovenste laag aarde iets opdrogen tussen gietbeurten)",
+        "image_path": "/home/frank/tools/plants/images/gatenplant.jpg"
     },
     "Flamingoplant (Anthurium andraeanum)": {
         "last_fertilized": "2026-10-24",
         "summer_interval": 35,
         "winter_interval": 70,
-        "last_watered": "2026-10-21",
+        "last_watered": "2026-10-28",
         "water_interval": 7,
         "water_amount": "Matig (geef regelmatig kleine beetjes lauw water)"
     },

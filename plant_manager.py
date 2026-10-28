@@ -51,35 +51,36 @@ class PlantManager:
         self.current_sort_reverse = False
         
         if not HAS_PIL:
-            print("Waarschuwing: Pillow is niet geïnstalleerd. Foto's worden niet weergegeven. Run: pip install Pillow")
+            print("Waarschuwing: Pillow is niet geïnstalleerd. Foto's worden niet weergegeven.")
 
-        # --- STIJL INSTELLINGEN VOOR TABEL ---
         style = ttk.Style()
         style.configure("Treeview.Heading", font=('Arial', 10, 'bold'))
         style.configure("Treeview", font=('Arial', 10), rowheight=35) 
 
-        # --- SECTIE 1: PLANTEN BEHEER TABEL ---
-        tk.Label(root, text="Huidige Planten & Planning (Dubbelklik voor details):", font=('Arial', 10, 'bold')).pack(pady=(10, 0))
+        tk.Label(root, text="Huidige Planten & Planning (Dubbelklik voor details):", font=('Arial', 10, 'bold')).pack(pady=(10, 5))
+        
+        tree_frame = tk.Frame(root)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=5)
         
         columns = ('naam', 'water', 'voeding')
-        self.tree = ttk.Treeview(root, columns=columns, show='headings', height=15)
+        self.tree = ttk.Treeview(tree_frame, columns=columns, show='headings')
         
-        # Headings met sorteer-bindings en nette uitlijning
         self.tree.heading('naam', text='Plant Naam', anchor=tk.W, command=lambda: self.sort_treeview('naam', False))
         self.tree.heading('water', text='Volgende Water', anchor=tk.CENTER, command=lambda: self.sort_treeview('water', False))
         self.tree.heading('voeding', text='Volgende Voeding', anchor=tk.CENTER, command=lambda: self.sort_treeview('voeding', False))
         
-        # Kolombreedtes
-        self.tree.column('naam', width=440, anchor=tk.W)
-        self.tree.column('water', width=260, anchor=tk.CENTER)
-        self.tree.column('voeding', width=260, anchor=tk.CENTER)
+        self.tree.column('naam', width=500, anchor=tk.W, stretch=True)
+        self.tree.column('water', width=300, anchor=tk.CENTER, stretch=True)
+        self.tree.column('voeding', width=300, anchor=tk.CENTER, stretch=True)
         
-        self.tree.pack(pady=5)
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         self.tree.bind("<Double-1>", self.show_plant_details)
         self.refresh_list()
-        
-        # Laat het scherm direct opstarten met sortering op water (ascending)
         self.sort_treeview('water', False)
         
         tk.Label(root, text="Nieuwe plant toevoegen (naam):").pack(pady=(15, 0))
@@ -107,30 +108,33 @@ class PlantManager:
         btn_remove = tk.Button(frame_buttons, text="Verwijder Selectie", command=self.remove_plant, width=15)
         btn_remove.grid(row=0, column=3, padx=5)
 
-        tk.Frame(root, height=2, bd=1, relief=tk.SUNKEN).pack(fill=tk.X, padx=20, pady=20)
+        tk.Frame(root, height=2, bd=1, relief=tk.SUNKEN).pack(fill=tk.X, padx=20, pady=15)
 
-        # --- SECTIE 2: TAKENLIJST ---
         tk.Label(root, text="Openstaande Taken (Water & Voeding):", font=('Arial', 10, 'bold')).pack(pady=(0, 0))
         
-        self.task_listbox = tk.Listbox(root, width=120, height=10, bg="#f0f8ff", selectmode=tk.EXTENDED) 
-        self.task_listbox.pack(pady=5)
+        task_frame = tk.Frame(root)
+        task_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=5)
+        
+        self.task_listbox = tk.Listbox(task_frame, height=20, bg="#f0f8ff", selectmode=tk.EXTENDED, font=('Arial', 10)) 
+        task_scrollbar = ttk.Scrollbar(task_frame, orient=tk.VERTICAL, command=self.task_listbox.yview)
+        self.task_listbox.configure(yscrollcommand=task_scrollbar.set)
+        
+        self.task_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        task_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         btn_done = tk.Button(root, text="✔️ Markeer geselecteerde taak/taken als GEDAAN", command=self.mark_task_done, width=45, font=('Arial', 10, 'bold'), bg="#e6ffe6")
-        btn_done.pack(pady=(25, 10))
+        btn_done.pack(pady=(15, 20))
         
         self.refresh_tasks()
 
     def sort_treeview(self, col, reverse):
-        """Sorteert de Treeview inhoud en past het pijltje in de header aan."""
         self.current_sort_col = col
         self.current_sort_reverse = reverse
         
-        # Reset standaard teksten met behoud van correcte anchor-uitlijning
         self.tree.heading('naam', text='Plant Naam', anchor=tk.W)
         self.tree.heading('water', text='Volgende Water', anchor=tk.CENTER)
         self.tree.heading('voeding', text='Volgende Voeding', anchor=tk.CENTER)
         
-        # Voeg sorteer indicator toe
         indicator = " ▼" if reverse else " ▲"
         if col == 'naam':
             self.tree.heading('naam', text='Plant Naam' + indicator, anchor=tk.W)
@@ -139,7 +143,6 @@ class PlantManager:
         elif col == 'voeding':
             self.tree.heading('voeding', text='Volgende Voeding' + indicator, anchor=tk.CENTER)
             
-        # Haal huidige data op uit Treeview
         l = [(self.tree.set(k, col), k) for k in self.tree.get_children('')]
         
         if col == 'naam':
@@ -159,13 +162,13 @@ class PlantManager:
         self.tree.heading(col, command=lambda _col=col: self.sort_treeview(_col, not reverse))
 
     def choose_manual_photo(self):
-        file_path = filedialog.askopenfilename(title="Kies een foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png")])
+        file_path = filedialog.askopenfilename(title="Kies een foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png"), ("Alle bestanden", "*.*")])
         if file_path:
             self.last_image_path = file_path
             self.lbl_photo_status.config(text="✓ Foto gekoppeld")
 
     def identify_with_ai(self):
-        file_path = filedialog.askopenfilename(title="Kies een foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png")])
+        file_path = filedialog.askopenfilename(title="Kies een foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png"), ("Alle bestanden", "*.*")])
         if not file_path: return
 
         self.last_image_path = file_path
@@ -228,9 +231,18 @@ class PlantManager:
         messagebox.showinfo("Succes", f"'{name}' is toegevoegd.\nSchema gebaseerd op: {bron}.")
 
     def update_plant_image(self, plant_name, modal_window, img_frame_widget):
-        file_path = filedialog.askopenfilename(title="Kies een nieuwe foto", filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png")])
-        if not file_path: return
+        modal_window.grab_release()
         
+        file_path = filedialog.askopenfilename(
+            parent=modal_window, 
+            title="Kies een nieuwe foto", 
+            filetypes=[("Afbeeldingen", "*.jpg *.jpeg *.png"), ("Alle bestanden", "*.*")]
+        )
+        
+        if not file_path: 
+            modal_window.grab_set()
+            return
+            
         self.data[plant_name]['image_path'] = file_path
         save_data(self.data)
         modal_window.destroy()
@@ -250,7 +262,7 @@ class PlantManager:
         
         modal = tk.Toplevel(self.root)
         modal.title(f"Details: {name}")
-        modal.geometry("800x480") 
+        modal.geometry("800x650") 
         modal.transient(self.root)
         
         tk.Label(modal, text=f"🌱 {name}", font=('Arial', 14, 'bold')).pack(pady=15)
@@ -278,7 +290,11 @@ class PlantManager:
         tk.Label(info_frame, text=tips, font=('Arial', 10), wraplength=400, justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 20))
         
         img_path = data.get('image_path')
-        if img_path and os.path.exists(img_path) and HAS_PIL:
+        
+        if not HAS_PIL:
+            waarschuwing = "⚠️ FOTO KAN NIET GETOOND WORDEN\n\nDe bibliotheek 'Pillow' ontbreekt.\nOpen je terminal en run:\n\nsudo apt install python3-pil python3-pil.imagetk"
+            tk.Label(img_frame, text=waarschuwing, fg="red", font=('Arial', 10, 'bold'), justify=tk.CENTER).pack(pady=30)
+        elif img_path and os.path.exists(img_path):
             try:
                 img = Image.open(img_path)
                 img.thumbnail((250, 250)) 
@@ -309,19 +325,28 @@ class PlantManager:
         for plant in sorted(self.data.keys()):
             data = self.data[plant]
             
+            # 1. Bepaal het volgende water moment
             try:
                 last_watered = datetime.strptime(data['last_watered'], "%Y-%m-%d")
                 next_water = last_watered + timedelta(days=data['water_interval'])
                 water_str = next_water.strftime("%d-%m-%Y")
             except:
                 water_str = "??"
+                next_water = None
 
+            # 2. Bepaal het voeding moment en sync dit direct met de water cyclus
             fert_interval = data['winter_interval'] if is_winter else data['summer_interval']
-            if fert_interval is not None:
+            if fert_interval is not None and next_water is not None:
                 try:
                     last_fert = datetime.strptime(data['last_fertilized'], "%Y-%m-%d")
-                    next_fert = last_fert + timedelta(days=fert_interval)
-                    fert_str = next_fert.strftime("%d-%m-%Y")
+                    ideal_next_fert = last_fert + timedelta(days=fert_interval)
+                    
+                    # Zorg dat bemesten ALTIJD gelijk valt met een water-dag
+                    sync_fert = next_water
+                    while sync_fert < ideal_next_fert:
+                        sync_fert += timedelta(days=data['water_interval'])
+                        
+                    fert_str = sync_fert.strftime("%d-%m-%Y")
                 except:
                     fert_str = "??"
             else:
@@ -343,20 +368,33 @@ class PlantManager:
             last_watered = datetime.strptime(data['last_watered'], "%Y-%m-%d")
             next_water = last_watered + timedelta(days=data['water_interval'])
             
+            # Alleen taken tonen als de plant WATER nodig heeft
             if today >= next_water:
-                overdue = (today - next_water).days
-                self.pending_tasks.append({'plant': plant, 'type': 'water'})
-                self.task_listbox.insert(tk.END, f"💧 WATER: {plant} ({overdue} dagen te laat) - Advies: {data['water_amount']}")
+                overdue_water = (today - next_water).days
                 
-            fert_interval = data['winter_interval'] if is_winter else data['summer_interval']
-            if fert_interval is not None:
-                last_fert = datetime.strptime(data['last_fertilized'], "%Y-%m-%d")
-                next_fert = last_fert + timedelta(days=fert_interval)
+                fert_interval = data['winter_interval'] if is_winter else data['summer_interval']
+                fert_due = False
                 
-                if today >= next_fert:
-                    overdue = (today - next_fert).days
-                    self.pending_tasks.append({'plant': plant, 'type': 'voeding'})
-                    self.task_listbox.insert(tk.END, f"🧪 VOEDING: {plant} ({overdue} dagen te laat)")
+                if fert_interval is not None:
+                    last_fert = datetime.strptime(data['last_fertilized'], "%Y-%m-%d")
+                    ideal_next_fert = last_fert + timedelta(days=fert_interval)
+                    
+                    # Sync logica (wacht op bewateringsmoment)
+                    sync_fert = next_water
+                    while sync_fert < ideal_next_fert:
+                        sync_fert += timedelta(days=data['water_interval'])
+                        
+                    # Als de gesynchroniseerde bemestingsdag ook bereikt is
+                    if today >= sync_fert:
+                        fert_due = True
+                
+                # Gecombineerde taak als vloeibare voeding ook nodig is
+                if fert_due:
+                    self.pending_tasks.append({'plant': plant, 'type': 'both'})
+                    self.task_listbox.insert(tk.END, f"💧 WATER + 🧪 VLOEIBARE MEST: {plant} ({overdue_water} dagen te laat)")
+                else:
+                    self.pending_tasks.append({'plant': plant, 'type': 'water'})
+                    self.task_listbox.insert(tk.END, f"💧 WATER: {plant} ({overdue_water} dagen te laat)")
                     
         if not self.pending_tasks:
             self.task_listbox.insert(tk.END, "🎉 Alle planten zijn verzorgd! Er zijn momenteel geen taken.")
@@ -381,6 +419,10 @@ class PlantManager:
             if task_type == 'water':
                 self.data[plant]['last_watered'] = today_str
             elif task_type == 'voeding':
+                self.data[plant]['last_fertilized'] = today_str
+            elif task_type == 'both':
+                # Reset beide tellers tegelijk!
+                self.data[plant]['last_watered'] = today_str
                 self.data[plant]['last_fertilized'] = today_str
                 
             tasks_completed += 1
