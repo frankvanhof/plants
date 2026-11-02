@@ -15,9 +15,12 @@ try:
 except ImportError:
     HAS_PIL = False
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), 'plants.json')
+DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'plants.json')
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "llava"
+
+# --- VUL HIER JE ZELFBEDACHTE NTFY KANAAL IN ---
+NTFY_TOPIC = "frank_planten_beheer_2026"
 
 PLANT_PROFILES = {
     'alocasia': {'summer_interval': 14, 'winter_interval': None, 'water_interval': 7, 'water_amount': 'Royaal (kluit niet laten uitdrogen, geen natte voeten)', 'light_requirement': 'Veel indirect zonlicht, vermijd felle middagzon.', 'care_tips': 'Houdt van een hoge luchtvochtigheid (regelmatig sproeien).'},
@@ -42,7 +45,7 @@ class PlantManager:
     def __init__(self, root):
         self.root = root
         self.root.title("Planten Beheer")
-        self.root.geometry("1200x1400")
+        self.root.geometry("1300x1400")
         
         self.data = load_data()
         self.pending_tasks = [] 
@@ -83,7 +86,7 @@ class PlantManager:
         self.refresh_list()
         self.sort_treeview('water', False)
         
-        tk.Label(root, text="Nieuwe plant toevoegen (naam):").pack(pady=(15, 0))
+        tk.Label(root, text="Nieuwe plant toevoegen (naam):").pack(pady=(10, 0))
         
         input_frame = tk.Frame(root)
         input_frame.pack(pady=5)
@@ -108,7 +111,7 @@ class PlantManager:
         btn_remove = tk.Button(frame_buttons, text="Verwijder Selectie", command=self.remove_plant, width=15)
         btn_remove.grid(row=0, column=3, padx=5)
 
-        tk.Frame(root, height=2, bd=1, relief=tk.SUNKEN).pack(fill=tk.X, padx=20, pady=15)
+        tk.Frame(root, height=2, bd=1, relief=tk.SUNKEN).pack(fill=tk.X, padx=20, pady=10)
 
         tk.Label(root, text="Openstaande Taken (Water & Voeding):", font=('Arial', 10, 'bold')).pack(pady=(0, 0))
         
@@ -122,10 +125,82 @@ class PlantManager:
         self.task_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         task_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        btn_done = tk.Button(root, text="✔️ Markeer geselecteerde taak/taken als GEDAAN", command=self.mark_task_done, width=45, font=('Arial', 10, 'bold'), bg="#e6ffe6")
-        btn_done.pack(pady=(15, 20))
+        # --- ONDERSTE ACTIE KNOPPEN (Naast elkaar geplaatst) ---
+        bottom_buttons_frame = tk.Frame(root)
+        bottom_buttons_frame.pack(pady=(10, 20))
+        
+        btn_done = tk.Button(
+            bottom_buttons_frame, 
+            text="✔️ Markeer geselecteerde als GEDAAN", 
+            command=self.mark_task_done, 
+            font=('Arial', 11, 'bold'), 
+            bg="#4CAF50",
+            fg="white",
+            activebackground="#45a049",
+            activeforeground="white",
+            cursor="hand2",
+            relief=tk.RAISED,
+            bd=3,
+            padx=15,
+            pady=10
+        )
+        btn_done.pack(side=tk.LEFT, padx=10)
+
+        btn_notify = tk.Button(
+            bottom_buttons_frame, 
+            text="📱 Stuur Notificaties naar Telefoon (ntfy)", 
+            command=self.send_push_notifications, 
+            font=('Arial', 11, 'bold'), 
+            bg="#2196F3",
+            fg="white",
+            activebackground="#1e88e5",
+            activeforeground="white",
+            cursor="hand2",
+            relief=tk.RAISED,
+            bd=3,
+            padx=15,
+            pady=10
+        )
+        btn_notify.pack(side=tk.LEFT, padx=10)
         
         self.refresh_tasks()
+
+    def send_push_notifications(self):
+        if not self.pending_tasks:
+            messagebox.showinfo("Info", "Er zijn geen openstaande taken om door te sturen.")
+            return
+
+        messages = []
+        for i in range(self.task_listbox.size()):
+            item_text = self.task_listbox.get(i)
+            if "🎉" not in item_text:
+                messages.append(item_text)
+                
+        if not messages:
+            return
+
+        body = "\n\n".join(messages)
+        
+        try:
+            self.root.config(cursor="watch")
+            self.root.update()
+            
+            requests.post(
+                "https://ntfy.sh/",
+                json={
+                    "topic": NTFY_TOPIC,
+                    "title": "🌱 Planten Verzorging Nodig!",
+                    "message": body,
+                    "tags": ["potted_plant", "droplet"],
+                    "priority": 3
+                },
+                timeout=10
+            )
+            messagebox.showinfo("Verzonden", "Notificatie succesvol naar je telefoon verstuurd!")
+        except Exception as e:
+            messagebox.showerror("Fout", f"Kon notificatie niet versturen:\n{e}")
+        finally:
+            self.root.config(cursor="")
 
     def sort_treeview(self, col, reverse):
         self.current_sort_col = col
@@ -325,7 +400,6 @@ class PlantManager:
         for plant in sorted(self.data.keys()):
             data = self.data[plant]
             
-            # 1. Bepaal het volgende water moment
             try:
                 last_watered = datetime.strptime(data['last_watered'], "%Y-%m-%d")
                 next_water = last_watered + timedelta(days=data['water_interval'])
@@ -334,14 +408,12 @@ class PlantManager:
                 water_str = "??"
                 next_water = None
 
-            # 2. Bepaal het voeding moment en sync dit direct met de water cyclus
             fert_interval = data['winter_interval'] if is_winter else data['summer_interval']
             if fert_interval is not None and next_water is not None:
                 try:
                     last_fert = datetime.strptime(data['last_fertilized'], "%Y-%m-%d")
                     ideal_next_fert = last_fert + timedelta(days=fert_interval)
                     
-                    # Zorg dat bemesten ALTIJD gelijk valt met een water-dag
                     sync_fert = next_water
                     while sync_fert < ideal_next_fert:
                         sync_fert += timedelta(days=data['water_interval'])
@@ -368,7 +440,6 @@ class PlantManager:
             last_watered = datetime.strptime(data['last_watered'], "%Y-%m-%d")
             next_water = last_watered + timedelta(days=data['water_interval'])
             
-            # Alleen taken tonen als de plant WATER nodig heeft
             if today >= next_water:
                 overdue_water = (today - next_water).days
                 
@@ -379,16 +450,13 @@ class PlantManager:
                     last_fert = datetime.strptime(data['last_fertilized'], "%Y-%m-%d")
                     ideal_next_fert = last_fert + timedelta(days=fert_interval)
                     
-                    # Sync logica (wacht op bewateringsmoment)
                     sync_fert = next_water
                     while sync_fert < ideal_next_fert:
                         sync_fert += timedelta(days=data['water_interval'])
                         
-                    # Als de gesynchroniseerde bemestingsdag ook bereikt is
                     if today >= sync_fert:
                         fert_due = True
                 
-                # Gecombineerde taak als vloeibare voeding ook nodig is
                 if fert_due:
                     self.pending_tasks.append({'plant': plant, 'type': 'both'})
                     self.task_listbox.insert(tk.END, f"💧 WATER + 🧪 VLOEIBARE MEST: {plant} ({overdue_water} dagen te laat)")
@@ -421,7 +489,6 @@ class PlantManager:
             elif task_type == 'voeding':
                 self.data[plant]['last_fertilized'] = today_str
             elif task_type == 'both':
-                # Reset beide tellers tegelijk!
                 self.data[plant]['last_watered'] = today_str
                 self.data[plant]['last_fertilized'] = today_str
                 

@@ -11,7 +11,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
-        "last_watered": "2026-10-25",
+        "last_watered": "2026-11-01",
         "water_interval": 7,
         "water_amount": "Matig (aarde licht vochtig houden)",
         "image_path": "/home/frank/tools/plants/images/lipstick.jpg"
@@ -28,7 +28,7 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": null,
-        "last_watered": "2026-10-21",
+        "last_watered": "2026-10-31",
         "water_interval": 10,
         "water_amount": "Matig (laat de bovenste laag aarde iets opdrogen tussen gietbeurten)",
         "image_path": "/home/frank/tools/plants/images/gatenplant.jpg"
@@ -45,8 +45,19 @@
         "last_fertilized": "2026-10-24",
         "summer_interval": 21,
         "winter_interval": 42,
-        "last_watered": "2026-10-22",
+        "last_watered": "2026-10-31",
         "water_interval": 7,
         "water_amount": "Matig tot ruim (sterke plant, maar houdt van regelmaat)"
+    },
+    "vetplant": {
+        "last_fertilized": "2026-10-31",
+        "summer_interval": null,
+        "winter_interval": null,
+        "last_watered": "2026-10-10",
+        "water_interval": 21,
+        "water_amount": "Weinig (laat aarde volledig uitdrogen)",
+        "light_requirement": "Zoveel mogelijk direct zonlicht.",
+        "care_tips": "In de winter vrijwel volledig droog laten staan.",
+        "image_path": null
     }
 }

@@ -1,6 +1,6 @@
 # 🌱 Planten Beheer App
 
-Een lokaal, privacy-vriendelijk beheersysteem voor kamerplanten. Geschreven in Python (Tkinter) en geoptimaliseerd voor Linux Mint (Cinnamon).
+Een lokaal, privacy-vriendelijk beheersysteem voor kamerplanten. Geschreven in Python (Tkinter) en geoptimaliseerd voor Linux Mint (Cinnamon), met een headless backend voor automatische notificaties op een Raspberry Pi.
 
 ![Planten Beheer App Screenshot](screenshot.png)
 
@@ -10,22 +10,34 @@ Een lokaal, privacy-vriendelijk beheersysteem voor kamerplanten. Geschreven in P
 - **Detailscherm (Modal):** Dubbelklik op een plant voor een pop-up met lichtbehoefte, wateradvies, extra tips en een plantfoto.
 - **Foto Koppeling:** Mogelijkheid om foto's automatisch via AI (Ollama llava) te koppelen of handmatig toe te voegen/te wijzigen.
 - **Takenlijst:** Automatische detectie van achterstallig onderhoud met multi-select om taken in één keer af te vinken.
-- **Offline & Privacy-first:** Draait volledig lokaal in combinatie met Ollama en slaat data op in een lokaal JSON-bestand.
-- **Geautomatiseerde Notificaties:** Achtergrondcontrole via cron in combinatie met een wrapper-script (`run_check.sh`) voor betrouwbare desktopnotificaties (`notify-send`).
+- **Volledig Onafhankelijk (Geen Cloud):** Draait 100% lokaal zonder afhankelijkheid van externe clouddiensten zoals Nextcloud. Data wordt opgeslagen in een relatief geplaatst `plants.json` bestand.
+- **Snelle Deployment:** Eén-klik deployment (`deploy_naar_pi.sh`) via `rsync` en SSH naar een Raspberry Pi.
+- **Geautomatiseerde Push Notificaties:** Dagelijkse achtergrondcontrole (cronjob) op de headless Raspberry Pi verstuurt geruisloos pushnotificaties naar een smartphone via de `ntfy`-API, en logt lokaal de output (`cron.log`).
 
-## 🏗️ Systeem Architectuur (Tweetraps AI)
+## 🏗️ Systeem Architectuur (AI GUI & Headless Backend)
 
-De applicatie draait volledig offline en maakt gebruik van een slimme, dubbele integratie met een lokaal LLM (Ollama).
+De applicatie is opgesplitst in een grafische frontend voor lokaal beheer (met lokale AI-integratie) en een robuuste backend-taak op de Raspberry Pi voor monitoring.
 
 ```mermaid
 graph TD
-    A[Gebruiker] -->|1. Kiest foto Handmatig/AI| B(plant_manager.py)
-    B -->|Base64 Image + Prompt| C[(Ollama: llava)]
-    C -->|Plantnaam bijv. Monstera| B
-    A -->|2. Klikt Voeg Toe| B
-    B -->|Prompt: schema, licht & tips| C
-    C -->|JSON schema data| B
-    B -->|Opslaan incl. fotopad| D[(plants.json)]
-    E[Cronjob 09:00 via run_check.sh] --> F(check_plants.py)
-    F -->|Leest data| D
-    F -->|Actie nodig?| G[notify-send Desktop Melding]
+    subgraph Laptop (Linux Mint)
+        A[Gebruiker] -->|1. Kiest foto Handmatig/AI| B(plant_manager.py)
+        B -->|Base64 Image + Prompt| C[(Ollama: llava)]
+        C -->|Plantnaam & JSON schema data| B
+        B -->|2. Klikt Voeg Toe| B
+        B -->|Opslaan in zelfde map| D[(plants.json)]
+        B -.->|3. Handmatige push via deploy_naar_pi.sh| P
+        D -.->|Sync via rsync/SSH| P
+    end
+
+    subgraph Raspberry Pi (Headless server)
+        P[(Lokale map: ~/plants)]
+        E[Cronjob 08:00 via user frank] --> F(check_plants.py)
+        F -->|Leest actuele data| P
+        F -->|Actie nodig?| G[ntfy.sh API Post]
+        F -->|Errors / Succes| L[cron.log]
+    end
+
+    subgraph Mobile
+        G -->|Pushbericht| H[Smartphone]
+    end
