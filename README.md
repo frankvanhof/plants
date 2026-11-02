@@ -20,7 +20,7 @@ De applicatie is opgesplitst in een grafische frontend voor lokaal beheer (met l
 
 ```mermaid
 graph TD
-    subgraph Laptop (Linux Mint)
+    subgraph Laptop ["Laptop (Linux Mint)"]
         A[Gebruiker] -->|1. Kiest foto Handmatig/AI| B(plant_manager.py)
         B -->|Base64 Image + Prompt| C[(Ollama: llava)]
         C -->|Plantnaam & JSON schema data| B
@@ -30,7 +30,7 @@ graph TD
         D -.->|Sync via rsync/SSH| P
     end
 
-    subgraph Raspberry Pi (Headless server)
+    subgraph RaspberryPi ["Raspberry Pi (Headless server)"]
         P[(Lokale map: ~/plants)]
         E[Cronjob 08:00 via user frank] --> F(check_plants.py)
         F -->|Leest actuele data| P
@@ -38,6 +38,6 @@ graph TD
         F -->|Errors / Succes| L[cron.log]
     end
 
-    subgraph Mobile
+    subgraph Mobile ["Smartphone"]
         G -->|Pushbericht| H[Smartphone]
     end
